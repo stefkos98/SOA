@@ -1,0 +1,85 @@
+version: '3.0'
+services:
+    mongo:
+      image: mongo
+      volumes:
+        - mongodata:/data/db
+    mqtt:
+      image: ncarlier/mqtt
+    sensor:
+      build:
+        context: .
+      env_file: docker-compose.env
+      environment:
+          NODEID: "node-sensor"
+          SERVICES: sensor
+      depends_on:
+        - mqtt
+    data:
+      build:
+        context: .
+      env_file: docker-compose.env
+      environment:
+        NODEID: "node-data"
+        SERVICES: data
+      depends_on:
+        - mqtt
+        - mongo
+      links:
+        - mongo
+    gateway:
+      build:
+        context: .
+      image: service-gateway
+      env_file: docker-compose.env
+      environment:
+        NODEID: "node-gateway"
+        SERVICES: gateway
+        PORT: 4000
+      ports:
+        - "4000:4000"
+      depends_on:
+        - mqtt
+    analytics:
+      build:
+        context: .
+      env_file: docker-compose.env
+      environment:
+        NODEID: "node-analytics"
+        SERVICES: analytics
+      ports:
+        - "5000:5000"
+      depends_on:
+        - mqtt
+        - mongo
+      links:
+        - mongo
+    command:
+      build:
+        context: .
+      env_file: docker-compose.env
+      environment:
+        NODEID: "node-command"
+        SERVICES: command
+      depends_on:
+        - mqtt
+    siddhi:
+      build:
+        context: ./siddhi
+      image: siddhi
+      ports:
+        - "8006:8006"
+      depends_on:
+        - analytics
+    webdashboard:
+      build:
+        context: ./webdashboard
+        dockerfile: Dockerfile
+      ports:
+        - 3001:3000
+      stdin_open: true
+      volumes:
+        - './webdashboard:/front'
+        - '/front/node_modules'
+volumes:
+  mongodata:

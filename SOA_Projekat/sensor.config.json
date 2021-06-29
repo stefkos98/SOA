@@ -1,0 +1,13 @@
+{
+	"devices": [
+		{
+			"id": 1,
+			"type": "sensor",
+			"interval": 15000
+		},
+		{
+			"id": 2,
+			"type": "actuator"
+		}
+	]
+}

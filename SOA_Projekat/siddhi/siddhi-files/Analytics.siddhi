@@ -1,0 +1,105 @@
+@App:name('Analytics')
+
+
+@App:description('Description of the plan')
+
+@sink(type='http', publisher.url='http://gateway:4000/api/analytics/CEPResponse',method='POST', headers='Content-type:application/json',      basic.auth.enabled='false',
+      @map(type='json'))
+define stream OutputStream (inj int, fat int, loss int, mag int, lossType string, damageType string,event int );
+
+@source(type = 'http', receiver.url = "http://siddhi:8006/analytics", 
+	@map(type = 'json'))
+@Annotation(property = "value")
+define stream DataInputStream (inj int, fat int, loss int, mag int);
+
+@info(name = 'InjuriesQuery')
+from DataInputStream#window.length(1)[inj > 0] 
+select inj, fat, loss, mag ,
+ifThenElse(loss == 1, "under 50$",
+ ifThenElse(loss == 2, "between 50$ and 500$",
+ ifThenElse(loss == 3, "between 500$ and 5k$",
+ ifThenElse(loss == 4, "between 5k$ and 50k$",
+ ifThenElse(loss == 5, "between 50k$ and 500k$",
+ ifThenElse(loss == 6, "between 500k$ and 5m$",
+ ifThenElse(loss == 7, "between 5m$ and 50m$",
+ ifThenElse(loss == 8, "between 50m$ and 500m$",
+ ifThenElse(loss == 9, "more than 500m$", "Unknown"))))))))) as lossType,
+ 
+ ifThenElse(mag == 1, "Moderate damage",
+ ifThenElse(mag == 2, "Significant damage",
+ ifThenElse(mag == 3, "Severe damage",
+ ifThenElse(mag == 4, "Devastating damage",
+ ifThenElse(mag == 5, "Incredible damage",
+ ifThenElse(mag == 0, "Light damage",
+ "Unknown")))))) as damageType,
+ 1 as event
+insert into OutputStream;
+
+@info(name = 'FatalitiesQuery')
+from DataInputStream#window.length(1)[fat > 0] 
+select inj, fat, loss, mag ,
+ifThenElse(loss == 1, "under 50$",
+ ifThenElse(loss == 2, "between 50$ and 500$",
+ ifThenElse(loss == 3, "between 500$ and 5k$",
+ ifThenElse(loss == 4, "between 5k$ and 50k$",
+ ifThenElse(loss == 5, "between 50k$ and 500k$",
+ ifThenElse(loss == 6, "between 500k$ and 5m$",
+ ifThenElse(loss == 7, "between 5m$ and 50m$",
+ ifThenElse(loss == 8, "between 50m$ and 500m$",
+ ifThenElse(loss == 9, "more than 500m$",  "Unknown"))))))))) as lossType,
+ 
+ ifThenElse(mag == 1, "Moderate damage",
+ ifThenElse(mag == 2, "Significant damage",
+ ifThenElse(mag == 3, "Severe damage",
+ ifThenElse(mag == 4, "Devastating damage",
+ ifThenElse(mag == 5, "Incredible damage",
+ ifThenElse(mag == 0, "Light damage",
+ "Unknown")))))) as damageType,
+ 2 as event
+insert into OutputStream;
+
+@info(name = 'LossQuery')
+from DataInputStream#window.length(1)[loss > 0] 
+select inj, fat, loss, mag, 
+ ifThenElse(loss == 1, "under 50$",
+ ifThenElse(loss == 2, "between 50$ and 500$",
+ ifThenElse(loss == 3, "between 500$ and 5k$",
+ ifThenElse(loss == 4, "between 5k$ and 50k$",
+ ifThenElse(loss == 5, "between 50k$ and 500k$",
+ ifThenElse(loss == 6, "between 500k$ and 5m$",
+ ifThenElse(loss == 7, "between 5m$ and 50m$",
+ ifThenElse(loss == 8, "between 50m$ and 500m$",
+ ifThenElse(loss == 9, "more than 500m$",  "Unknown"))))))))) as lossType,
+ 
+ ifThenElse(mag == 1, "Moderate damage",
+ ifThenElse(mag == 2, "Significant damage",
+ ifThenElse(mag == 3, "Severe damage",
+ ifThenElse(mag == 4, "Devastating damage",
+ ifThenElse(mag == 5, "Incredible damage",
+ ifThenElse(mag == 0, "Light damage",
+ "Unknown")))))) as damageType,
+ 3 as event
+insert into OutputStream;
+
+@info(name = 'DamageQuery')
+from DataInputStream#window.length(1)[mag >= 0] 
+select inj, fat, loss, mag , 
+ifThenElse(loss == 1, "under 50$",
+ ifThenElse(loss == 2, "between 50$ and 500$",
+ ifThenElse(loss == 3, "between 500$ and 5k$",
+ ifThenElse(loss == 4, "between 5k$ and 50k$",
+ ifThenElse(loss == 5, "between 50k$ and 500k$",
+ ifThenElse(loss == 6, "between 500k$ and 5m$",
+ ifThenElse(loss == 7, "between 5m$ and 50m$",
+ ifThenElse(loss == 8, "between 50m$ and 500m$",
+ ifThenElse(loss == 9, "more than 500m$",  "Unknown"))))))))) as lossType,
+ 
+ ifThenElse(mag == 1, "Moderate damage",
+ ifThenElse(mag == 2, "Significant damage",
+ ifThenElse(mag == 3, "Severe damage",
+ ifThenElse(mag == 4, "Devastating damage",
+ ifThenElse(mag == 5, "Incredible damage",
+ ifThenElse(mag == 0, "Light damage",
+ "Unknown")))))) as damageType,
+ 4 as event
+insert into OutputStream;
